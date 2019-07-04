@@ -35,29 +35,30 @@ echo $from_user_id;
 echo $to_user_id;
 try{
  $query = "
- SELECT * FROM messages WHERE (from_user_id =:fuid AND to_user_id =:tuid) 
- OR (from_user_id =:tuid1 AND to_user_id =:fuid1) 
+  SELECT * FROM messages 
+ WHERE (from_user_id = '".$from_user_id."' 
+ AND to_user_id = '".$to_user_id."') 
+ OR (from_user_id = '".$to_user_id."' 
+ AND to_user_id = '".$from_user_id."') 
  ORDER BY time ASC
  ";
  $statement = $this->db->prepare($query);
- $statement->bindParam(":fuid", $from_user_id);
- $statement->bindParam(":tuid", $to_user_id);
- $statement->bindParam(":tuid1", $from_user_id);
- $statement->bindParam(":fuid1", $to_user_id);
+ 
  $statement->execute();
- $result = $statement->fetchAll();
+
  $output = '<ul class="list-unstyled">';
- //echo "hiii";
- foreach($result as $row)
+ while($row = $statement->fetch(PDO::FETCH_ASSOC))
  {
-  $user_name = '';
-  if($row["from_user_id"] == $from_user_id)
+  //echo $row['to_user_id'];
+ 	$user_name = '';
+ 	if($row["from_user_id"] == $from_user_id)
   {
-   $user_name = '<b class="text-success">You</b>';
+   $user_name = '<b class="text-success">You'.$row['from_user_id'].'</b>';
   }
   else
   {
-   $user_name = '<b class="text-danger">'.get_user_name($row['from_user_id']).'</b>';
+   $user_name = '<b class="text-danger">'.$this->get_user_name($row['from_user_id']).'</b>';
+    //$user_name = '<b class="text-danger">heyyy</b>';
   }
   $output .= '
   <li style="border-bottom:1px dotted #ccc">
@@ -68,8 +69,11 @@ try{
    </p>
   </li>
   ';
+
+
  }
- $output .= '</ul>';
+  //$output .= '</ul>';
+
  return $output;
 }catch(PDOException $e)
 {
@@ -88,6 +92,25 @@ function get_user_name($user_id)
   return $row['username'];
  }
 }
+function count_unseen_message($from_user_id, $to_user_id, $connect)
+{
+ $query = "
+ SELECT * FROM chat_message 
+ WHERE from_user_id = '$from_user_id' 
+ AND to_user_id = '$to_user_id' 
+ AND status = '1'
+ ";
+ $statement = $connect->prepare($query);
+ $statement->execute();
+ $count = $statement->rowCount();
+ $output = '';
+ if($count > 0)
+ {
+  $output = '<span class="label label-success">'.$count.'</span>';
+ }
+ return $output;
+}
+
 
 }
 ?>
