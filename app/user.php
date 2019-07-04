@@ -92,17 +92,17 @@ function get_user_name($user_id)
   return $row['username'];
  }
 }
-function count_unseen_message($from_user_id, $to_user_id, $connect)
+function count_unseen_message($from_user_id, $to_user_id)
 {
- $query = "
- SELECT * FROM chat_message 
- WHERE from_user_id = '$from_user_id' 
- AND to_user_id = '$to_user_id' 
+ $sql = "
+ SELECT * FROM chat_message WHERE from_user_id = :from_user_id AND to_user_id = :to_user_id 
  AND status = '1'
  ";
- $statement = $connect->prepare($query);
- $statement->execute();
- $count = $statement->rowCount();
+ $stmt = $connect->prepare($sql);
+ $stmt->bindValue(":from_user_id",$from_user_id);
+ $stmt->bindValue(":to_user_id", $to_user_id);
+ $stmt->execute();
+ $count = $stmt->rowCount();
  $output = '';
  if($count > 0)
  {
