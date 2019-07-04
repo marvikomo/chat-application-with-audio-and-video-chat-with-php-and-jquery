@@ -72,8 +72,13 @@ try{
 
 
  }
-  //$output .= '</ul>';
-
+  $output .= '</ul>';
+   $query1 = "UPDATE messages SET status = '0' WHERE from_user_id = '".$to_user_id."' 
+   AND to_user_id = '".$from_user_id."' 
+    AND status = '1'
+ ";
+ $statement1 = $connect->prepare($query1);
+ $statement1->execute();
  return $output;
 }catch(PDOException $e)
 {
@@ -94,13 +99,16 @@ function get_user_name($user_id)
 }
 function count_unseen_message($from_user_id, $to_user_id)
 {
+  try{
  $sql = "
- SELECT * FROM chat_message WHERE from_user_id = :from_user_id AND to_user_id = :to_user_id 
- AND status = '1'
+ SELECT * FROM messages WHERE from_user_id = :from_user_id AND to_user_id = :to_user_id 
+ AND status =:stat
  ";
- $stmt = $connect->prepare($sql);
+ $stat = 1;
+ $stmt = $this->db->prepare($sql);
  $stmt->bindValue(":from_user_id",$from_user_id);
  $stmt->bindValue(":to_user_id", $to_user_id);
+  $stmt->bindValue(":stat", $stat);
  $stmt->execute();
  $count = $stmt->rowCount();
  $output = '';
@@ -109,6 +117,10 @@ function count_unseen_message($from_user_id, $to_user_id)
   $output = '<span class="label label-success">'.$count.'</span>';
  }
  return $output;
+}catch(PDOException $e)
+{
+  echo $e->getMessage();
+}
 }
 
 
